@@ -18,8 +18,8 @@ A Streamlit application that leverages AI to enhance learning efficiency, specif
 
 1. Clone this repository:
    ```bash
-   git clone https://github.com/yourusername/ai-learning-framework.git
-   cd ai-learning-framework
+   git clone git@github.com:ksprsk/llm-learnflow.git
+   cd llm-learnflow
    ```
 
 2. Create a virtual environment and install dependencies:
