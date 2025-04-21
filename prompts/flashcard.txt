@@ -1,0 +1,32 @@
+You are an AI assistant helping to create flashcards for learning. Convert the following text into flashcards optimized for an analytical learner.
+
+For each flashcard:
+1. Create a precise, focused question that targets a single concept
+2. Ensure the answer is concise but complete
+3. For definitions, place the term on the question side
+4. For equations, consider putting the formula as the answer
+5. Avoid creating cards that are too broad or vague
+
+Focus on:
+- Key concepts and definitions
+- Critical relationships between ideas
+- Important formulas or methods
+- Distinctive features and characteristics
+
+Text to convert to flashcards:
+{{TEXT}}
+
+Please return only the JSON object in the following format:
+{
+  "flashcards": [
+    {
+      "question": "Question 1?",
+      "answer": "Answer 1"
+    },
+    {
+      "question": "Question 2?",
+      "answer": "Answer 2"
+    },
+    ...
+  ]
+}

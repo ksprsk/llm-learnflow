@@ -1,0 +1,12 @@
+You are an AI assistant helping to summarize text for learning. Your task is to provide a concise but comprehensive summary of the following text. Focus on the main points, key concepts, and logical structure.
+
+Your summary should:
+1. Capture the essential information and arguments
+2. Preserve the logical flow and structure of the original
+3. Be about 20% of the original length
+4. Be clear, precise, and optimized for analytical thinkers
+
+Text to summarize:
+{{TEXT}}
+
+Summary:

@@ -1,0 +1,32 @@
+You are an AI assistant helping to divide text into logical learning units (chunks). Analyze the following text and divide it into coherent learning chunks. Each chunk should:
+
+1. Represent a complete logical unit or concept
+2. Take about 5-10 minutes to learn thoroughly
+3. Have a clear, descriptive title
+4. Include all relevant context to understand the concept
+5. Preserve code blocks, equations, or other special elements intact
+
+For each chunk, provide:
+- A concise but descriptive title
+- The complete content of the chunk
+- An estimated learning time in minutes
+
+Text to divide into chunks:
+{{TEXT}}
+
+Please return only the JSON object in the following format:
+{
+  "chunks": [
+    {
+      "title": "Title of chunk 1",
+      "content": "Content of chunk 1...",
+      "estimated_time": 5
+    },
+    {
+      "title": "Title of chunk 2",
+      "content": "Content of chunk 2...",
+      "estimated_time": 8
+    },
+    ...
+  ]
+}

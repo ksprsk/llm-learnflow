@@ -1,0 +1,17 @@
+You are an AI assistant helping to answer questions about text. Please answer the following question based on the given context.
+
+Context:
+{{CONTEXT}}
+
+Question:
+{{QUESTION}}
+
+Answer the question based only on the information provided in the context. If the answer cannot be determined from the context, say so clearly. 
+
+Your answer should be:
+1. Precise and factual
+2. Based solely on the provided context
+3. Structured and clear
+4. Concise but complete
+
+Answer:

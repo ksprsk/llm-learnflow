@@ -1,0 +1,69 @@
+{
+    "app": {
+      "name": "AI Learning Framework",
+      "version": "0.1.0",
+      "description": "A framework for AI-enhanced learning"
+    },
+    "features": {
+      "summary": {
+        "enabled": true,
+        "max_length_percentage": 20
+      },
+      "concept_map": {
+        "enabled": true
+      },
+      "chunking": {
+        "enabled": true,
+        "default_min_time": 5,
+        "default_max_time": 10
+      },
+      "flashcards": {
+        "enabled": true,
+        "export_formats": ["anki", "csv"]
+      },
+      "qa": {
+        "enabled": true,
+        "max_history": 50
+      },
+      "line_explanation": {
+        "enabled": true
+      },
+      "examples": {
+        "enabled": true,
+        "types": ["code", "analogy", "real-life", "visual", "historical"]
+      },
+      "summary_tree": {
+        "enabled": true,
+        "default_levels": 3
+      },
+      "bidirectional_highlighting": {
+        "enabled": true
+      }
+    },
+    "api": {
+      "default_provider": "openai",
+      "providers": {
+        "openai": {
+          "default_model": "gpt-4",
+          "fallback_model": "gpt-3.5-turbo",
+          "max_tokens": 1000,
+          "temperature": 0.7
+        }
+      }
+    },
+    "ui": {
+      "theme": "light",
+      "sidebar_width": "medium",
+      "concept_map_height": 500,
+      "highlight_color": "rgba(255, 255, 0, 0.3)",
+      "completed_color": "rgba(0, 255, 0, 0.1)"
+    },
+    "logging": {
+      "level": "info",
+      "save_api_requests": false,
+      "save_api_responses": false
+    },
+    "plugins": {
+      "enabled": []
+    }
+  }
