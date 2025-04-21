@@ -3,30 +3,66 @@ import time
 import json
 import openai
 import hooks
+from pathlib import Path
 
-class OpenAIAdapter:
-    """Adapter for the OpenAI API."""
+class AIAdapter:
+    """Universal adapter for multiple AI models."""
     
-    def __init__(self, api_key=None, model="gpt-4", max_tokens=1000):
+    def __init__(self, config_path="key.json", model_name=None):
         """
-        Initialize the OpenAI adapter.
+        Initialize the AI adapter with configuration from a JSON file.
         
         Args:
-            api_key (str, optional): OpenAI API key. Defaults to None.
-            model (str, optional): Model to use. Defaults to "gpt-4".
-            max_tokens (int, optional): Maximum tokens for completions. Defaults to 1000.
+            config_path (str): Path to the configuration JSON file
+            model_name (str, optional): Name of the specific model to use from config
         """
-        self.api_key = api_key or os.getenv("OPENAI_API_KEY")
-        if not self.api_key:
-            raise ValueError("OpenAI API key is required")
+        # Load configuration
+        self.config = self._load_config(config_path)
+        self.models = {}
         
-        self.model = model
-        self.max_tokens = max_tokens
-        self.client = openai.OpenAI(api_key=self.api_key)
+        # Initialize all models from config or select one specific model
+        for model_config in self.config.get("models", []):
+            model_instance = self._create_model_instance(model_config)
+            self.models[model_config["name"]] = model_instance
+            
+        # Set the active model (either specified or first in config)
+        if model_name and model_name in self.models:
+            self.active_model = self.models[model_name]
+        elif self.models:
+            self.active_model = next(iter(self.models.values()))
+        else:
+            raise ValueError("No models configured")
+    
+    def _load_config(self, config_path):
+        """Load configuration from a JSON file."""
+        try:
+            with open(config_path, 'r') as f:
+                return json.load(f)
+        except (FileNotFoundError, json.JSONDecodeError) as e:
+            print(f"Error loading configuration: {str(e)}")
+            return {"models": []}
+    
+    def _create_model_instance(self, model_config):
+        """Create an instance of AIModel from configuration."""
+        return AIModel(
+            name=model_config.get("name", "Default"),
+            model_name=model_config.get("model_name", "gpt-4"),
+            api_key=model_config.get("api_key"),
+            base_url=model_config.get("base_url"),
+            max_completion_tokens=model_config.get("max_completion_tokens", 1000),
+            extra_body=model_config.get("extra_body", {})
+        )
+    
+    def set_active_model(self, model_name):
+        """Set the active model by name."""
+        if model_name in self.models:
+            self.active_model = self.models[model_name]
+            return True
+        return False
     
     def generate_completion(self, prompt, temperature=0.7, stream=False):
         """
-        Generate a text completion using the OpenAI API.
+        Generate a text completion using the active AI model.
         
         Args:
             prompt (str): The prompt to generate completion for
@@ -36,30 +72,8 @@ class OpenAIAdapter:
         Returns:
             str: The generated completion
         """
-        try:
-            response = self.client.chat.completions.create(
-                model=self.model,
-                messages=[{"role": "user", "content": prompt}],
-                temperature=temperature,
-                max_tokens=self.max_tokens,
-                stream=stream
-            )
-            
-            if stream:
-                # Handle streaming response
-                collected_chunks = []
-                for chunk in response:
-                    if chunk.choices and chunk.choices[0].delta.content:
-                        collected_chunks.append(chunk.choices[0].delta.content)
-                        yield chunk.choices[0].delta.content
-                return "".join(collected_chunks)
-            else:
-                # Handle regular response
-                return response.choices[0].message.content.strip()
-                
-        except Exception as e:
-            print(f"Error generating completion: {str(e)}")
-            raise
+        messages = [{"role": "user", "content": prompt}]
+        return self.active_model.generate_response(messages)
     
     def ask_question(self, question, context, temperature=0.7):
         """
@@ -236,3 +250,89 @@ JSON response:
         except Exception as e:
             print(f"Error generating summary tree: {str(e)}")
             return []
+
+
+class AIModel:
+    def __init__(self, name, model_name, api_key, base_url=None, max_completion_tokens=1000, extra_body=None):
+        """
+        Initialize an AI model client.
+        
+        Args:
+            name (str): Display name for the model
+            model_name (str): Name of the model to use with the API
+            api_key (str): API key for authentication
+            base_url (str, optional): Base URL for the API
+            max_completion_tokens (int, optional): Maximum tokens in completion
+            extra_body (dict, optional): Additional parameters for the request
+        """
+        self.name = name
+        self.model_name = model_name
+        self.api_key = api_key
+        self.max_completion_tokens = max_completion_tokens
+        self.extra_body = extra_body or {}
+        
+        # Initialize the client
+        client_kwargs = {"api_key": api_key}
+        if base_url:
+            client_kwargs["base_url"] = base_url
+        
+        self.client = openai.OpenAI(**client_kwargs)
+    
+    def generate_response(self, messages):
+        """
+        Generate a response based on the message history.
+        
+        Args:
+            messages (list): List of message dictionaries with role and content
+            
+        Returns:
+            str: Generated response from the AI model
+        """
+        # Transform messages for API compatibility
+        api_messages = []
+        
+        for msg in messages:
+            if msg["role"] == "system":
+                # Keep system messages as is
+                api_messages.append(msg)
+            elif msg["role"] == self.name:
+                # Messages from this model become assistant messages
+                api_messages.append({
+                    "role": "assistant",
+                    "content": msg["content"]
+                })
+            else:
+                # Messages from other sources (user or other models) become user messages
+                # with the source prepended to the content
+                source = msg["role"]
+                content = msg["content"]
+                
+                # Only prepend source if it's not already there
+                if not content.startswith(f"{source}:"):
+                    content = f"{source}: {content}"
+                
+                api_messages.append({
+                    "role": "user",
+                    "content": content
+                })
+        
+        # Create the completion request
+        kwargs = {
+            "model": self.model_name,
+            "messages": api_messages,
+            "max_tokens": self.max_completion_tokens,
+        }
+        
+        # Add any additional parameters if provided
+        if self.extra_body:
+            kwargs.update(self.extra_body)
+        
+        try:
+            # Generate completion
+            completion = self.client.chat.completions.create(**kwargs)
+            
+            # Return the generated content
+            return completion.choices[0].message.content
+        except Exception as e:
+            print(f"Error generating response from {self.name}: {str(e)}")
+            return f"[Error] Failed to generate response: {str(e)}"

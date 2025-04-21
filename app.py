@@ -7,7 +7,7 @@ from pathlib import Path
 from dotenv import load_dotenv
 
 # Local imports
-from adapters.openai_adapter import OpenAIAdapter
+from adapters.openai_adapter import AIAdapter
 from utils import (
     process_text,
     generate_chunks,
@@ -39,7 +39,8 @@ def load_config():
 config = load_config()
 
 # Initialize API adapter
-api_adapter = OpenAIAdapter(api_key=os.getenv("OPENAI_API_KEY"))
+api_adapter = AIAdapter("key.json", "Gemini")
+
 
 # Initialize session state
 if "initialized" not in st.session_state:
